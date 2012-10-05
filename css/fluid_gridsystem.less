@@ -1,0 +1,201 @@
+
+
+/* 
+
+Fuseki Grid System
+
+Version: 	1.0
+Date:		11-07-2012
+Author: 	André Boekhorst
+Autor URL: 	www.andreboekhorst.nl
+
+
+This script makes a Grid System like Bootstrap. Difference is that the gutter width
+will stay the same when you nest columns in a fluid layout. This will make it easier
+to make awesome grid based websites.
+
+*/
+
+
+// Initial Vars
+
+@max-width: 940px;
+@columns: 12;
+@gutter: 32px;
+
+
+// Calculations and Mixins 
+
+@gutterspace: @gutter * (@columns - 1);
+@columnspace: @max-width - @gutterspace;
+@column-width: @columnspace / @columns;
+
+@column-width-percent: percentage( @column-width / @max-width );
+@gutter-percent: percentage( @gutter / @max-width );
+
+
+.width_colspan( @colspan : 1){	
+	@my_width: @gutter * ( @colspan - 1) + @column-width * @colspan;
+	margin-left: @gutter;
+	width: @my_width;
+}
+
+
+.width_colspan_percent(@colspan : 1, @container_cols : @columns, @gutter_width : @gutter){
+
+	@container_width: @gutter * ( @container_cols - 1) + @column-width * @container_cols;	
+	@my_width: @gutter * ( @colspan - 1) + @column-width * @colspan;
+	
+	margin-left: percentage( @gutter_width / @container_width);
+	width: percentage( @my_width / @container_width);
+	*width:percentage( (@my_width - 10 ) / @container_width);
+}
+
+
+
+
+
+// Initial CSS
+
+
+body{
+	padding: 0;
+	margin: 0;
+}
+
+
+.container{
+	width: @max-width;
+}
+
+.container.fluid{
+	width: 100%;
+	max-width: @max-width;
+}
+
+
+
+
+
+
+
+
+
+//
+// Loops Column Width in Pixels
+//
+
+.loop (@index) when (@index > 0) {
+	(~".span@{index}") { .width_colspan( @index ); }
+	.loop (@index - 1);
+}
+.loop (0) {}		// end the loop when index is 0
+
+
+
+
+
+//
+// Loops Column Width in Pixels
+//
+
+.get_nested_spans(@index, @parent_cols){
+	.loop_fluid_nested( @index ) when (@index > 0) {
+		(~".span@{index}") { .width_colspan_percent(@index, @parent_cols ); }
+		.loop_fluid_nested (@index - 1);
+	}
+	.loop_fluid_nested (0) {}		
+	.loop_fluid_nested(@index);
+}
+
+
+
+//
+// Loops Column Width in Percent
+//
+
+.loop_fluid (@index) when (@index > 0) {
+	(~".span@{index}") { 
+	
+		.width_colspan_percent( @index ); 
+		.get_nested_spans(@index, @index ); /* Nested should never be wider than the parent. */
+		
+	}
+	.loop_fluid (@index - 1);
+}
+.loop_fluid (0) {}		
+
+
+
+
+.row{
+	width: 100%;
+}
+
+// Micro Clearfix - http://nicolasgallagher.com/micro-clearfix-hack/
+.row:before, .row:after { 
+	content: " "; 
+	/* 1 */ display: table; /* 2 */ 
+}
+.row:after { clear: both; }
+.row { *zoom: 1; }
+
+.container:before, .container:after { 
+	content: " "; 
+	/* 1 */ display: table; /* 2 */ 
+}
+.container:after { clear: both; }
+.container { *zoom: 1; }
+
+
+
+
+
+.col{
+	display: block;
+	float: left;
+	width: @column-width;
+	margin-left: @gutter;	
+}
+
+.col:first-child, .firstchild{
+	margin-left: 0 !important;
+}
+
+
+// Generates the col widths
+
+.row{
+	.loop (@columns);	// "call" the loopingClass the first time with highest value
+}
+
+.row.fluid{
+	.loop_fluid (@columns);	// "call" the loopingClass the first time with highest value
+}
+
+
+/* Extra helpers if you want to switch columns */
+
+.col-right{
+	float: right;
+}	
+.col-left{
+	float: left;
+	margin-left: 0 !important;
+}
+.col-hidden{
+	display: none;
+	visibility: hidden;
+}
+
+@media all and (max-width: 400px) {
+	.col{
+		width: 100% !important;
+		margin-left: 0 !important;
+	}
+
+	.mobilehide{
+		display: none;
+		visibility: none;
+	}
+}
